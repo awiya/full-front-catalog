@@ -1,1 +1,29 @@
-<p>products works!</p>
+<div class="container mt-3 popi">
+    <div class="card">
+        <div class="card-header">Liste des produits</div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Nom:</th>
+                        <th>Prix:</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let p of products">
+                        <td>{{p.id}}</td>
+                        <td>{{p.name}}</td>
+                        <td class="mono">{{p.price}}</td>
+                        <td>
+                            <button (click)="handleDeleteProduct(p)" class="btn btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Product } from '../model/product.model';
 import { ProductService } from '../services/product.service';
 
@@ -9,12 +10,51 @@ import { ProductService } from '../services/product.service';
 })
 export class ProductsComponent implements OnInit {
   products: Product[];
+  currentPage: number = 0;
+  pageSize: number = 5;
+  totalPages: number;
   errorMessage: string;
+  searchFormGroup: FormGroup;
+  action: string = 'all';
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private formBuilder: FormBuilder
+  ) {}
 
   ngOnInit(): void {
-    this.handleGetAllProducts();
+    this.searchFormGroup = this.formBuilder.group({
+      key: this.formBuilder.control(null),
+    });
+    this.handleGetPageProducts();
+  }
+
+  handleSearchProducts() {
+    this.action = 'search';
+    this.currentPage = 0;
+    let keyword = this.searchFormGroup.value.key;
+    this.productService
+      .searchProducts(keyword, this.currentPage, this.pageSize)
+      .subscribe({
+        next: (data) => {
+          this.products = data.products;
+          this.totalPages = data.totalPages;
+        },
+      });
+  }
+
+  handleGetPageProducts() {
+    this.productService
+      .getPageProducts(this.currentPage, this.pageSize)
+      .subscribe({
+        next: (data) => {
+          this.products = data.products;
+          this.totalPages = data.totalPages;
+        },
+        error: (err) => {
+          this.errorMessage = err;
+        },
+      });
   }
 
   handleGetAllProducts() {
@@ -49,5 +89,11 @@ export class ProductsComponent implements OnInit {
         this.errorMessage = err;
       },
     });
+  }
+
+  goTopage(i: number) {
+    this.currentPage = i;
+    if (this.action == 'all') this.handleGetPageProducts();
+    else this.handleSearchProducts();
   }
 }

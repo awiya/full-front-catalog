@@ -1,8 +1,11 @@
 <div class="container mt-3 popi">
-    <div class="card">
+    <ng-template #errorTemplate>
+        <div class="alert alert-danger mt-3 text-danger">{{errorMessage}}</div>
+    </ng-template>
+    <div class="card" *ngIf="products; else errorTemplate">
         <div class="card-header">Liste des produits</div>
         <div class="card-body">
-            <table class="table table-hover">
+            <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
@@ -15,7 +18,7 @@
                     <tr *ngFor="let p of products">
                         <td>{{p.id}}</td>
                         <td>{{p.name}}</td>
-                        <td class="mono">{{p.price}}</td>
+                        <td class="mono">{{p.price}}€</td>
                         <td>
                             <button (click)="handleDeleteProduct(p)" class="btn btn-danger">
                                 <i class="bi bi-trash"></i>

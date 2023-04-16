@@ -5,6 +5,7 @@ import { CustomersComponent } from './customers/customers.component';
 import { LoginComponent } from './login/login.component';
 import { ProductsComponent } from './products/products.component';
 import { AuthenticationGuard } from './guards/authentication.guard';
+import { AddProductComponent } from './add-product/add-product.component';
 
 const routes: Routes = [
   {
@@ -23,6 +24,7 @@ const routes: Routes = [
     children: [
       { path: 'products', component: ProductsComponent },
       { path: 'customers', component: CustomersComponent },
+      { path: 'newProduct', component: AddProductComponent },
     ],
   },
 ];

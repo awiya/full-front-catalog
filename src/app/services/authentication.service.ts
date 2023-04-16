@@ -12,16 +12,11 @@ export class AuthenticationService {
   constructor() {
     this.users.push({
       userId: UUID.UUID(),
-      username: 'user1',
+      username: 'user',
       password: 'user',
       roles: ['USER'],
     });
-    this.users.push({
-      userId: UUID.UUID(),
-      username: 'user2',
-      password: 'user',
-      roles: ['USER'],
-    });
+
     this.users.push({
       userId: UUID.UUID(),
       username: 'wpuser',

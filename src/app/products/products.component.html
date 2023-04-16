@@ -25,7 +25,7 @@
                         <th>Prix:</th>
                         <th class="text-center">En promotion</th>
                         <th *ngIf="authService.hasRole('ADMIN')">Promotion</th>
-                        <th *ngIf="authService.hasRole('ADMIN')">Action</th>
+                        <th *ngIf="authService.hasRole('ADMIN')">&nbsp;&nbsp;&nbsp;&nbsp;Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,7 +47,12 @@
                             <button (click)="handleDeleteProduct(p)" class="btn btn-danger">
                                 <i class="bi bi-trash"></i>
                             </button>
+                            &nbsp;
+                            <button (click)="handleEditProduct(p)" class="btn btn-success">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
                         </td>
+
                     </tr>
                 </tbody>
             </table>

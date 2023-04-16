@@ -6,6 +6,7 @@ import { LoginComponent } from './login/login.component';
 import { ProductsComponent } from './products/products.component';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import { AddProductComponent } from './add-product/add-product.component';
+import { EditProductComponent } from './edit-product/edit-product.component';
 
 const routes: Routes = [
   {
@@ -25,6 +26,7 @@ const routes: Routes = [
       { path: 'products', component: ProductsComponent },
       { path: 'customers', component: CustomersComponent },
       { path: 'newProduct', component: AddProductComponent },
+      { path: 'editProduct/:id', component: EditProductComponent },
     ],
   },
 ];

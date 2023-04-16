@@ -94,4 +94,17 @@ export class ProductService {
     this.products.push(product);
     return of(product);
   }
+
+  getProduct(idToFind: string): Observable<Product> {
+    let product = this.products.find((p) => p.id == idToFind);
+    if (product) return of(product);
+    else return throwError(() => new Error('Produit non trouvé'));
+  }
+
+  updateProduct(product: Product): Observable<Product> {
+    this.products = this.products.map((p) =>
+      p.id == product.id ? product : p
+    );
+    return of(product);
+  }
 }

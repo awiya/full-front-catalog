@@ -88,4 +88,10 @@ export class ProductService {
       products: pageProducts,
     });
   }
+
+  saveProduct(product: Product): Observable<Product> {
+    product.id = UUID.UUID();
+    this.products.push(product);
+    return of(product);
+  }
 }

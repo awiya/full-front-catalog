@@ -27,17 +27,23 @@ export class AddProductComponent implements OnInit {
   }
 
   handleSaveProduct() {
-    console.log(this.newProductFormGroup.value);
+    let product = this.newProductFormGroup.value;
+    this.productService.saveProduct(product).subscribe({
+      next: (data) => {
+        alert('Le produit a été enregistré avec succès.');
+        this.newProductFormGroup.reset();
+      },
+    });
   }
   getErrorMessage(field: string, error: any): string {
     if (error['required']) {
-      return field + ' is Required';
+      return field + ' est requis.';
     } else if (error['minlength']) {
       return (
         field +
-        ' should have at least ' +
+        ' doit comporter au moins ' +
         error['minlength']['requiredLength'] +
-        ' Characters'
+        ' caractères. '
       );
     } else return '';
   }

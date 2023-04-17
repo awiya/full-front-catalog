@@ -3,8 +3,8 @@ export interface Product {
   name: string;
   price: number;
   promotion: boolean;
+  selected?: boolean;
 }
-
 export interface PageProducts {
   page: number;
   size: number;

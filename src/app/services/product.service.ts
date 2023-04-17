@@ -8,100 +8,116 @@ import { PageProducts, Product } from '../model/product.model';
   providedIn: 'root',
 })
 export class ProductService {
-  private products: Product[];
-
+  private products!: Product[];
   constructor() {
-    this.products = [
-      { id: UUID.UUID(), name: 'Computer', price: 650, promotion: true },
-      { id: UUID.UUID(), name: 'Printer', price: 120, promotion: false },
-      { id: UUID.UUID(), name: 'Smartphone', price: 300, promotion: true },
-      { id: UUID.UUID(), name: 'xphone', price: 1000, promotion: true },
-    ];
+    this.loadInitialProducts();
+  }
 
-    for (let i = 0; i < 10; i++) {
+  public loadInitialProducts() {
+    this.products = [
+      { id: UUID.UUID(), name: 'Computer', price: 5400, promotion: true },
+      { id: UUID.UUID(), name: 'Printer', price: 1200, promotion: false },
+      { id: UUID.UUID(), name: 'Smart phone', price: 9000, promotion: true },
+    ];
+    for (let i = 4; i < 20; i++) {
       this.products.push({
         id: UUID.UUID(),
         name: 'Computer',
-        price: 650,
+        price: 5400,
         promotion: true,
       });
       this.products.push({
         id: UUID.UUID(),
         name: 'Printer',
-        price: 120,
+        price: 1200,
         promotion: false,
       });
       this.products.push({
         id: UUID.UUID(),
-        name: 'xSmartphone',
-        price: 300,
+        name: 'Smart phone',
+        price: 9000,
         promotion: true,
       });
     }
   }
 
-  getAllProducts(): Observable<Product[]> {
-    return of(this.products);
+  public getProducts(): Observable<Product[]> {
+    let rnd = Math.random();
+    if (rnd < 0.15) {
+      return throwError(() => new Error('Network error => 404'));
+    }
+    return of([...this.products]);
   }
 
-  getPageProducts(page: number, size: number): Observable<PageProducts> {
-    let index = page * size;
-    let totalPages = ~~(this.products.length / size);
-    if (this.products.length % size != 0) totalPages++;
-    let pageProducts = this.products.slice(index, index + size);
-    return of({
-      page: page,
-      size: size,
-      totalPages: totalPages,
-      products: pageProducts,
-    });
-  }
-
-  deleteProduct(idToDelete: string): Observable<boolean> {
-    this.products = this.products.filter((p) => p.id != idToDelete);
+  public deleteProduct(id: string): Observable<boolean> {
+    this.products = this.products.filter((p) => p.id != id);
     return of(true);
   }
-
-  setPromotion(idToSet: string): Observable<boolean> {
-    let produit = this.products.find((p) => p.id == idToSet);
-
-    if (produit) {
-      produit.promotion = !produit.promotion;
-      return of(true);
-    } else return throwError(() => new Error('Produit non trouvé!'));
+  public deleteListProducts(products: Product[]) {
+    this.products = this.products.filter(
+      (prod) => products.find((p) => p.id == prod.id) == null
+    );
+    return of(true);
   }
-
-  searchProducts(
-    key: string,
-    page: number,
-    size: number
-  ): Observable<PageProducts> {
-    let filter = this.products.filter((p) => p.name.includes(key));
+  public searchProducts(name: string, page: number, size: number) {
+    let searchedList = this.products.filter((p) => p.name.includes(name));
+    let totalPages = ~~(searchedList.length / size);
+    if (searchedList.length % size != 0) totalPages++;
     let index = page * size;
-    let totalPages = ~~(filter.length / size);
-    if (filter.length % size != 0) totalPages++;
-    let pageProducts = filter.slice(index, index + size);
-    return of({
+    let result = searchedList.slice(index, index + size);
+    let pageProducts: PageProducts = {
       page: page,
       size: size,
       totalPages: totalPages,
-      products: pageProducts,
-    });
+      products: result,
+    };
+    return of(pageProducts);
   }
-
-  saveProduct(product: Product): Observable<Product> {
+  public getPromotedProducts(page: number, size: number) {
+    let products = this.products.filter((p) => p.promotion == true);
+    let totalPages = ~~(products.length / size);
+    if (products.length % size != 0) totalPages++;
+    let index = page * size;
+    let result = products.slice(index, index + size);
+    let pageProducts: PageProducts = {
+      page: page,
+      size: size,
+      totalPages: totalPages,
+      products: result,
+    };
+    return of(pageProducts);
+  }
+  public saveProduct(product: Product): Observable<Product> {
     product.id = UUID.UUID();
     this.products.push(product);
     return of(product);
   }
-
-  getProduct(idToFind: string): Observable<Product> {
-    let product = this.products.find((p) => p.id == idToFind);
-    if (product) return of(product);
-    else return throwError(() => new Error('Produit non trouvé'));
+  public switchProductPromotion(id: string): Observable<boolean> {
+    let products = this.products.filter((p) => p.id == id);
+    if (products.length == 1) {
+      products[0].promotion = !products[0].promotion;
+    } else {
+      return throwError(() => new Error('Product not found'));
+    }
+    return of(true);
   }
 
-  updateProduct(product: Product): Observable<Product> {
+  public promoteProducts(products: Product[]): Observable<boolean> {
+    let prods = this.products.filter(
+      (p) => products.find((pr) => pr.id == p.id) != null
+    );
+    prods.forEach((p) => {
+      p.promotion = true;
+    });
+    return of(true);
+  }
+
+  public getProduct(id: string): Observable<Product> {
+    let product = this.products.find((p) => p.id == id);
+    if (product) return of(product);
+    else return throwError(() => new Error('Product not found'));
+  }
+  public updateProduct(product: Product): Observable<Product> {
     this.products = this.products.map((p) =>
       p.id == product.id ? product : p
     );

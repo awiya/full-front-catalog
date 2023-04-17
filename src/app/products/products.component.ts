@@ -11,101 +11,163 @@ import { ProductService } from '../services/product.service';
   styleUrls: ['./products.component.css'],
 })
 export class ProductsComponent implements OnInit {
-  products: Product[];
+  products!: Array<Product>;
+  errorMessage: string | undefined;
+  searchProductFormGroup!: FormGroup;
+  selectedProducts: Product[] = [];
+  selectMode: boolean = false;
+  selection: string = 'all';
   currentPage: number = 0;
   pageSize: number = 5;
-  totalPages: number;
-  errorMessage: string;
-  searchFormGroup: FormGroup;
-  action: string = 'all';
-
+  totalPages!: number;
+  currentAction!: string;
   constructor(
-    private productService: ProductService,
-    private formBuilder: FormBuilder,
-    public authService: AuthenticationService,
-    private router: Router
+    private productsService: ProductService,
+    private fb: FormBuilder,
+    private router: Router,
+    public authService: AuthenticationService
   ) {}
-
   ngOnInit(): void {
-    this.searchFormGroup = this.formBuilder.group({
-      key: this.formBuilder.control(null),
+    this.searchProductFormGroup = this.fb.group({
+      keyword: this.fb.control(''),
     });
-    this.handleGetPageProducts();
+    this.handleGetAllProducts();
+  }
+  handleDeleteProduct(p: Product) {
+    this.currentAction = 'handleDeleteProduct';
+    this.productsService.deleteProduct(p.id).subscribe({
+      next: (data) => {
+        let index = this.products.indexOf(p);
+        this.products.splice(index, 1);
+      },
+      error: (err) => {
+        this.errorMessage = err.error;
+      },
+    });
   }
 
   handleSearchProducts() {
-    this.action = 'search';
-    this.currentPage = 0;
-    let keyword = this.searchFormGroup.value.key;
-    this.productService
+    let keyword = this.searchProductFormGroup.value.keyword;
+    this.productsService
       .searchProducts(keyword, this.currentPage, this.pageSize)
       .subscribe({
         next: (data) => {
           this.products = data.products;
           this.totalPages = data.totalPages;
         },
+        error: (err) => {
+          this.errorMessage = err.error;
+        },
       });
   }
 
-  handleGetPageProducts() {
-    this.productService
-      .getPageProducts(this.currentPage, this.pageSize)
+  newProduct() {
+    this.router.navigateByUrl('/admin/newProduct');
+  }
+
+  handlePromoteProduct(product: Product) {
+    let value = product.promotion;
+    this.productsService.switchProductPromotion(product.id).subscribe({
+      next: (data) => {
+        product.promotion = !value;
+      },
+      error: (err) => {
+        this.errorMessage = err.error;
+      },
+    });
+  }
+
+  getPromotedProducts() {
+    console.log('getPromotedProducts');
+    this.currentAction = 'getPromotedProducts';
+    this.productsService
+      .getPromotedProducts(this.currentPage, this.pageSize)
       .subscribe({
         next: (data) => {
           this.products = data.products;
           this.totalPages = data.totalPages;
         },
         error: (err) => {
-          this.errorMessage = err;
+          this.errorMessage = err.error;
         },
       });
   }
 
+  select(p: Product) {
+    if (p.selected == undefined || p.selected == false) {
+      p.selected = true;
+      this.selectedProducts.push(p);
+    } else {
+      p.selected = false;
+      let index = this.selectedProducts.indexOf(p);
+      this.selectedProducts.splice(index, 1);
+    }
+  }
+
+  setSelection(mode: boolean) {
+    this.selectMode = mode;
+    this.selectedProducts = [];
+    this.products.forEach((p) => {
+      if (this.selection === 'all') {
+        p.selected = this.selectMode;
+      } else if (this.selection === 'promo') {
+        if (p.promotion == true) {
+          p.selected = this.selectMode;
+        } else {
+          p.selected = false;
+        }
+      }
+      if (p.selected == true) {
+        this.selectedProducts.push(p);
+      } else {
+        let index = this.selectedProducts.indexOf(p);
+        this.selectedProducts.splice(index, 1);
+      }
+    });
+  }
+
+  handleDeleteSelection() {
+    this.productsService.deleteListProducts(this.selectedProducts).subscribe({
+      next: (data) => {
+        for (let p of this.selectedProducts) {
+          let index = this.products.indexOf(p);
+          this.products.splice(index, 1);
+        }
+      },
+    });
+  }
+
+  handlePromotion() {
+    this.productsService.promoteProducts(this.selectedProducts).subscribe({
+      next: (data) => {
+        this.selectedProducts.forEach((p) => {
+          p.promotion = true;
+        });
+      },
+    });
+  }
+
+  goToPage(page: number) {
+    this.currentPage = page;
+    if (this.currentAction === 'getPromotedProducts') {
+      this.getPromotedProducts();
+    } else {
+      this.handleSearchProducts();
+    }
+  }
+
   handleGetAllProducts() {
-    this.productService.getAllProducts().subscribe({
-      next: (data) => {
-        this.products = data;
-      },
-      error: (err) => {
-        this.errorMessage = err;
-      },
-    });
+    this.currentAction = 'handleGetAllProducts';
+    this.searchProductFormGroup.controls['keyword'].setValue('');
+    this.handleNewReSearch();
   }
 
-  handleDeleteProduct(p: Product) {
-    let conf = confirm('Êtes-vous sûr de vouloir supprimer cela?');
-    if (conf == false) return;
-    this.productService.deleteProduct(p.id).subscribe({
-      next: (data) => {
-        let index = this.products.indexOf(p);
-        this.products.splice(index, 1);
-      },
-    });
+  handleNewReSearch() {
+    this.handleSearchProducts();
+    this.currentPage = 0;
   }
 
-  handlePromoteProduct(p: Product) {
-    let promo = p.promotion;
-    this.productService.setPromotion(p.id).subscribe({
-      next: (data) => {
-        p.promotion = !promo;
-      },
-      error: (err) => {
-        this.errorMessage = err;
-      },
-    });
-  }
-
-  goTopage(i: number) {
-    this.currentPage = i;
-    if (this.action == 'all') this.handleGetPageProducts();
-    else this.handleSearchProducts();
-  }
-
-  handleNewProduct() {
-    this.router.navigateByUrl('/admin/newProduct');
-  }
-
-  handleEditProduct(product: Product) {
-    this.router.navigateByUrl('/admin/editProduct/' + product.id);
+  handleEditProduct(p: Product) {
+    this.router.navigateByUrl('/admin/editProduct/' + p.id);
   }
 }
